@@ -5,14 +5,15 @@ const products = [
   { name: "Beans__:", country: "USA", cost: 2, instock: 5 },
   { name: "Cabbage:", country: "USA", cost: 1, instock: 8 },
 ];
+// commenting out Cart code as it appears to be unused.
 //=========Cart=============
-const Cart = (props) => {
-  const { Card, Accordion, Button } = ReactBootstrap;
-  let data = props.location.data ? props.location.data : products;
-  console.log(`data:${JSON.stringify(data)}`);
+// const Cart = (props) => {
+//   const { Card, Accordion, Button } = ReactBootstrap;
+//   let data = props.location.data ? props.location.data : products;
+//   console.log(`data:${JSON.stringify(data)}`);
 
-  return <Accordion defaultActiveKey="0">{list}</Accordion>;
-};
+//   return <Accordion defaultActiveKey="0">{list}</Accordion>;
+// };
 
 const useDataApi = (initialUrl, initialData) => {
   const { useState, useEffect, useReducer } = React;
@@ -31,7 +32,7 @@ const useDataApi = (initialUrl, initialData) => {
       dispatch({ type: "FETCH_INIT" });
       try {
         const result = await axios(url);
-        console.log("FETCH FROM URl");
+        console.log("FETCH FROM URL");
         if (!didCancel) {
           dispatch({ type: "FETCH_SUCCESS", payload: result.data });
         }
@@ -90,9 +91,9 @@ const Products = (props) => {
   } = ReactBootstrap;
   //  Fetch Data
   const { Fragment, useState, useEffect, useReducer } = React;
-  const [query, setQuery] = useState("http://localhost:1337/products");
+  const [query, setQuery] = useState("http://localhost:1337/api/products");
   const [{ data, isLoading, isError }, doFetch] = useDataApi(
-    "http://localhost:1337/products",
+    "http://localhost:1337/api/products",
     {
       data: [],
     }
@@ -102,27 +103,40 @@ const Products = (props) => {
   const addToCart = (e) => {
     let name = e.target.name;
     let item = items.filter((item) => item.name == name);
+    if (item[0].instock === 0) return;
+    item[0].instock = item[0].instock - 1;
     console.log(`add to Cart ${JSON.stringify(item)}`);
     setCart([...cart, ...item]);
-    //doFetch(query);
+    // doFetch(query);
   };
-  const deleteCartItem = (index) => {
-    let newCart = cart.filter((item, i) => index != i);
+  const deleteCartItem = (delIndex) => {
+    let newCart = cart.filter((item, i) => delIndex != i);
+    let target = cart.filter((item, index) => delIndex === index);
+    let newItems = items.map((item, index) => {
+      if (item.name === target[0].name) item.instock = item.instock + 1;
+      return item;
+    });
     setCart(newCart);
+    setItems(newItems);
   };
   const photos = ["apple.png", "orange.png", "beans.png", "cabbage.png"];
 
   let list = items.map((item, index) => {
-    //let n = index + 1049;
-    //let url = "https://picsum.photos/id/" + n + "/50/50";
-
+    // let n = index + 1049;
+    // let url = "https://picsum.photos/id/" + n + "/50/50";
+    // let url = photos.find(element => element.substring(0, 4) === item.name.substring(0, 4).toLowerCase());
+    let productImg = photos.find(element => element.substring(0, 4) === item.name.substring(0, 4).toLowerCase());
+    let isInstock = item.instock <= 0 ? true : false;
+    
     return (
       <li key={index}>
-        <Image src={photos[index % 4]} width={70} roundedCircle></Image>
+        {/* <Image src={photos[index % 4]} width={70} roundedCircle></Image> */}
+        {/* <Image src={url} width={70} roundedCircle></Image> */}
+        <Image src={productImg} width={70} roundedCircle></Image>
         <Button variant="primary" size="large">
-          {item.name}:{item.cost}
+          {item.name}: cost {item.cost}: stock {item.instock}
         </Button>
-        <input name={item.name} type="submit" onClick={addToCart}></input>
+        <input name={item.name} type="submit" onClick={addToCart} disabled={isInstock}></input>
       </li>
     );
   });
@@ -165,8 +179,38 @@ const Products = (props) => {
     console.log(`total updated to ${newTotal}`);
     return newTotal;
   };
+
+  const emptyCart = () => {
+    let checkoutTotal = checkOut();
+    console.log('Checkout total', checkoutTotal);
+    console.log('Emptying cart');
+    setCart([]);
+    return checkoutTotal;
+  };
+
   // TODO: implement the restockProducts function
-  const restockProducts = (url) => {};
+  const restockProducts = (url) => {
+    doFetch(url);
+    let newStockList = data.data.map(element => ({
+      name: element.attributes.name, 
+      country: element.attributes.country, 
+      cost: element.attributes.cost, 
+      instock: element.attributes.instock
+    }));
+    
+    let newProductList = [...items];
+    let count = 0;
+    const MAX_NUM_OF_PRODUCTS = 50;
+    while (newStockList.length > 0 && count < MAX_NUM_OF_PRODUCTS) {
+      let newStockItem = newStockList.pop();
+      let isPresent = newProductList.findIndex(element => element.name === newStockItem.name);
+      if (isPresent > -1) newProductList[isPresent].instock += newStockItem.instock;      
+      else newProductList.push(newStockItem);
+      count++;
+    }
+    
+    setItems(newProductList);
+  }
 
   return (
     <Container>
@@ -181,14 +225,14 @@ const Products = (props) => {
         </Col>
         <Col>
           <h1>CheckOut </h1>
-          <Button onClick={checkOut}>CheckOut $ {finalList().total}</Button>
+          <Button onClick={emptyCart}>CheckOut $ {finalList().total}</Button>
           <div> {finalList().total > 0 && finalList().final} </div>
         </Col>
       </Row>
       <Row>
         <form
           onSubmit={(event) => {
-            restockProducts(`http://localhost:1337/${query}`);
+            restockProducts(`${query}`);
             console.log(`Restock called on ${query}`);
             event.preventDefault();
           }}
@@ -196,7 +240,8 @@ const Products = (props) => {
           <input
             type="text"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => setQuery(event.target.value)} 
+            size="30"
           />
           <button type="submit">ReStock Products</button>
         </form>
