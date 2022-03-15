@@ -1,0 +1,55 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "attributes": {
+        "name": "Apples",
+        "country": "Italy",
+        "cost": 3,
+        "instock": 10,
+        "createdAt": "2022-03-11T23:04:32.659Z",
+        "updatedAt": "2022-03-11T23:19:00.067Z",
+        "publishedAt": "2022-03-11T23:19:00.063Z"
+      }
+    },
+    {
+      "id": 2,
+      "attributes": {
+        "name": "Oranges",
+        "country": "Spain",
+        "cost": 4,
+        "instock": 3,
+        "createdAt": "2022-03-11T23:13:16.653Z",
+        "updatedAt": "2022-03-11T23:23:40.886Z",
+        "publishedAt": "2022-03-11T23:23:40.882Z"
+      }
+    },
+    {
+      "id": 3,
+      "attributes": {
+        "name": "Beans",
+        "country": "USA",
+        "cost": 2,
+        "instock": 8,
+        "createdAt": "2022-03-11T23:13:58.735Z",
+        "updatedAt": "2022-03-11T23:23:31.180Z",
+        "publishedAt": "2022-03-11T23:23:31.175Z"
+      }
+    },
+    {
+      "id": 4,
+      "attributes": {
+        "name": "Cabbage",
+        "country": "USA",
+        "cost": 1,
+        "instock": 8,
+        "createdAt": "2022-03-11T23:14:37.157Z",
+        "updatedAt": "2022-03-11T23:23:36.822Z",
+        "publishedAt": "2022-03-11T23:23:36.817Z"
+      }
+    }
+  ],
+  "meta": {
+    "pagination": { "page": 1, "pageSize": 25, "pageCount": 1, "total": 4 }
+  }
+}
